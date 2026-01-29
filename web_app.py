@@ -300,9 +300,50 @@ with col3:
                 else:
                     st.warning(f"⚠️ {stats['success']} 個成功，{stats['failed']} 個失敗")
 
-                # 下載按鈕（模擬）
+                # 下載功能
+                from download_utils import (
+                    DownloadUtils,
+                    show_file_preview,
+                    provide_download_link,
+                )
+
                 st.markdown("### 📥 下載轉換後的文件")
-                st.info("轉換後的文件已準備好下載（此功能需要後端支持）")
+
+                # 顯示轉換摘要
+                summary = DownloadUtils.get_conversion_summary(str(output_dir))
+                if summary:
+                    st.markdown(
+                        f"""
+                    <div class="stats-card">
+                        <h4>轉換摘要</h4>
+                        <p>📁 轉換文件數: {summary["file_count"]}</p>
+                        <p>📦 總大小: {summary["total_size_mb"]:.2f} MB</p>
+                        <p>📂 目錄數: {summary["directory_count"]}</p>
+                    </div>
+                    """,
+                        unsafe_allow_html=True,
+                    )
+
+                # 文件預覽
+                show_file_preview(str(output_dir))
+
+                # 批量下載
+                st.markdown("### 📦 批量下載")
+
+                if stats["success"] > 0:
+                    # 創建ZIP文件
+                    zip_path = DownloadUtils.create_download_zip(str(output_dir))
+
+                    if zip_path:
+                        # 提供下載鏈接
+                        if provide_download_link(zip_path):
+                            st.success("✅ 下載鏈接已準備就緒！")
+                        else:
+                            st.error("❌ 下載鏈接創建失敗")
+                    else:
+                        st.warning("⚠️ 沒有找到轉換後的文件")
+                else:
+                    st.warning("⚠️ 沒有成功轉換的文件可供下載")
 
     else:
         st.warning("請先上傳圖片文件或選擇包含圖片的目錄")
